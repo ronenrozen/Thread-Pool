@@ -13,13 +13,12 @@ public class Main {
     public static void main(String[] args) {
         BlockingQueue<Callable<double[]>> queue = new LinkedBlockingQueue<>();
 
-        Worker worker = new Worker(queue);
+        Worker<double[]> worker = new Worker<>(queue);
         worker.start();
         synchronized (queue) {
             queue.add(() -> {
                 System.out.println("In Task");
-                double[] dummy = new double[1];
-                dummy[0] = 1.0;
+                double[] dummy = {1.0};
                 System.out.println("returning: " + dummy[0]);
                 return dummy;
             });

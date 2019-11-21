@@ -1,22 +1,22 @@
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 
-class Worker extends Thread {
+class Worker<T> extends Thread {
 
-    private final BlockingQueue<Callable<double[]>> blockingQueue;
-    private double[] results = {0.0};
+    private final BlockingQueue<Callable<T>> blockingQueue;
+    private T results;
 
-    Worker(BlockingQueue<Callable<double[]>> blockingQueue) {
+    Worker(BlockingQueue<Callable<T>> blockingQueue) {
         this.blockingQueue = blockingQueue;
     }
 
-    double[] getResults() {
+    T getResults() {
         return results;
     }
 
     @Override
     public void run() {
-        Callable<double[]> task;
+        Callable<T> task;
         synchronized (blockingQueue) {
             while (blockingQueue.isEmpty()) {
                 try {
@@ -33,7 +33,6 @@ class Worker extends Thread {
         try {
             assert task != null;
             results = task.call();
-            System.out.println("got results: " + results[0]);
         } catch (Exception e) {
             throw new RuntimeException("Thread pool was interrupted: " + e.getMessage());
         }
