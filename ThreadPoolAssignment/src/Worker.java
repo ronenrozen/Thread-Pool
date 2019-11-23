@@ -32,7 +32,11 @@ class Worker<T> extends Thread {
 
         try {
             assert task != null;
-            results = task.call();
+            T res = task.call();
+            synchronized (this){
+                this.wait();
+                results = res;
+            }
         } catch (Exception e) {
             throw new RuntimeException("Thread pool was interrupted: " + e.getMessage());
         }
