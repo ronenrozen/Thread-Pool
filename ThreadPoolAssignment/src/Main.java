@@ -1,6 +1,4 @@
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class Main {
 
@@ -11,25 +9,23 @@ public class Main {
      * This main should be deleted(!)
      */
     public static void main(String[] args) {
-        BlockingQueue<Callable<double[]>> queue = new LinkedBlockingQueue<>();
+        ThreadPool threadPool = new ThreadPool(2);
+        Callable[] tasks = new Callable[]{
+                () -> {
+                    double[] dummy1 = {1.0};
+                    System.out.println("returning dummy1: " + dummy1[0]);
+                    return dummy1;
+                },
+                () -> {
+                    double[] dummy2 = {2.0};
+                    System.out.println("returning dummy2: " + dummy2[0]);
+                    return dummy2;
+                }
+        };
 
-        Worker<double[]> worker = new Worker<>(queue);
-        worker.start();
-        synchronized (queue) {
-            queue.add(() -> {
-                System.out.println("In Task");
-                double[] dummy = {1.0};
-                System.out.println("returning: " + dummy[0]);
-                return dummy;
-            });
-            queue.notify();
+        for (Callable task : tasks) {
+            double[] results = threadPool.run(task);
+            System.out.println("results: " + results[0]);
         }
-        try {
-            worker.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        double[] results = worker.getResults();
-        System.out.println("results: " + results[0]);
     }
 }
