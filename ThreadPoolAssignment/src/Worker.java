@@ -5,14 +5,18 @@ class Worker<T> extends Thread {
 
     private final BlockingQueue<Callable<T>> blockingQueue;
     private T results;
+    private Callable<T> task;
 
     Worker(BlockingQueue<Callable<T>> blockingQueue) {
         this.blockingQueue = blockingQueue;
+        this.task = null;
     }
 
     T getResults() {
         return results;
     }
+
+    Callable getCurrentTask() { return this.task; }
 
     @Override
     public void run() {
@@ -28,6 +32,7 @@ class Worker<T> extends Thread {
             }
             System.out.println("queue received task");
             task = blockingQueue.poll();
+            this.task=task;
         }
 
         try {
