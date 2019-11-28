@@ -1,42 +1,40 @@
-import java.util.concurrent.Callable;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 class ThreadPool {
-    private final int numberOfThreads;
-    private final LinkedBlockingQueue tasksList;
+    private final BlockingQueue<iTask<?>> tasksList;
+    private final BlockingQueue<?> results;
     private final Worker[] threads;
 
     ThreadPool(int numberOfThreads) {
-        this.numberOfThreads = numberOfThreads;
-        tasksList = new LinkedBlockingQueue();
+        tasksList = new LinkedBlockingQueue<>();
+        results = new LinkedBlockingQueue<>();
         threads = new Worker[numberOfThreads];
 
         for (int i = 0; i < numberOfThreads; i++) {
-            threads[i] = new Worker(tasksList);
+            //noinspection unchecked
+            threads[i] = new Worker(tasksList, results);
             threads[i].start();
         }
     }
 
-    double[] run(Callable task) {
+    void terminate() {
+        for (Worker w : threads) {
+            w.interrupt();
+        }
+    }
+
+    @SuppressWarnings({"LoopConditionNotUpdatedInsideLoop", "StatementWithEmptyBody"})
+    Object getNextResult() {
+        while (results.isEmpty()) ;
+        return results.poll();
+    }
+
+    void run(iTask<?> task) {
         synchronized (tasksList) {
+            System.out.println("Got new task");
             tasksList.add(task);
             tasksList.notify();
-        }
-        while (true) {
-            for (Worker<double[]> w : threads) {
-                try {
-                    synchronized (w) {
-                        if (w.getCurrentTask() != null && w.getCurrentTask().equals(task)) {
-                            w.notify();
-                            if (w.getResults() != null) {
-                                return w.getResults();
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    //nothing
-                }
-            }
         }
     }
 }
