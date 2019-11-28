@@ -1,13 +1,12 @@
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
 
 class Worker<T> extends Thread {
 
-    private final BlockingQueue<Callable<T>> blockingQueue;
+    private final BlockingQueue<iTask<T>> blockingQueue;
     private T results;
-    private Callable<T> task;
+    private iTask<T> task;
 
-    Worker(BlockingQueue<Callable<T>> blockingQueue) {
+    Worker(BlockingQueue<iTask<T>> blockingQueue) {
         this.blockingQueue = blockingQueue;
         this.task = null;
     }
@@ -16,11 +15,11 @@ class Worker<T> extends Thread {
         return results;
     }
 
-    Callable getCurrentTask() { return this.task; }
+    iTask getCurrentTask() { return this.task; }
 
     @Override
     public void run() {
-        Callable<T> task;
+        iTask<T> task;
         synchronized (blockingQueue) {
             while (blockingQueue.isEmpty()) {
                 try {

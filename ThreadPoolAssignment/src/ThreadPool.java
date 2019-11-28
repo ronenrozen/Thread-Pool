@@ -1,9 +1,8 @@
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingQueue;
 
 class ThreadPool {
-    private final BlockingQueue<Callable<?>> tasksList;
+    private final BlockingQueue<iTask<?>> tasksList;
     private final Worker[] threads;
 
     ThreadPool(int numberOfThreads) {
@@ -16,7 +15,7 @@ class ThreadPool {
         }
     }
 
-    Object run(Callable<?> task) {
+    Object run(iTask<?> task) {
         synchronized (tasksList) {
             tasksList.add(task);
             tasksList.notify();
