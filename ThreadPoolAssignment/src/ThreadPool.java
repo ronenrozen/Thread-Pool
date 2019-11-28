@@ -1,14 +1,13 @@
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingQueue;
 
 class ThreadPool {
-    private final int numberOfThreads;
-    private final LinkedBlockingQueue tasksList;
+    private final BlockingQueue<Callable<?>> tasksList;
     private final Worker[] threads;
 
     ThreadPool(int numberOfThreads) {
-        this.numberOfThreads = numberOfThreads;
-        tasksList = new LinkedBlockingQueue();
+        tasksList = new LinkedBlockingQueue<>();
         threads = new Worker[numberOfThreads];
 
         for (int i = 0; i < numberOfThreads; i++) {
@@ -17,18 +16,20 @@ class ThreadPool {
         }
     }
 
-    double[] run(Callable task) {
+    Object run(Callable<?> task) {
         synchronized (tasksList) {
             tasksList.add(task);
             tasksList.notify();
         }
         while (true) {
-            for (Worker<double[]> w : threads) {
+            for (Worker w : threads) {
                 try {
+                    //noinspection SynchronizationOnLocalVariableOrMethodParameter
                     synchronized (w) {
                         if (w.getCurrentTask() != null && w.getCurrentTask().equals(task)) {
                             w.notify();
                             if (w.getResults() != null) {
+                                System.out.println("Thread number " + w.getName() + " returns result");
                                 return w.getResults();
                             }
                         }

@@ -1,5 +1,3 @@
-import java.util.concurrent.Callable;
-
 public class Main {
 
     /**
@@ -9,23 +7,31 @@ public class Main {
      * This main should be deleted(!)
      */
     public static void main(String[] args) {
-        ThreadPool threadPool = new ThreadPool(2);
-        Callable[] tasks = new Callable[]{
-                () -> {
-                    double[] dummy1 = {1.0};
-                    System.out.println("returning dummy1: " + dummy1[0]);
-                    return dummy1;
-                },
-                () -> {
-                    double[] dummy2 = {2.0};
-                    System.out.println("returning dummy2: " + dummy2[0]);
-                    return dummy2;
-                }
-        };
-
-        for (Callable task : tasks) {
-            double[] results = threadPool.run(task);
-            System.out.println("results: " + results[0]);
+        int number = 10;
+        Matrix[] matrices = new Matrix[number];
+        for (int i = 0; i < number; i++) {
+            matrices[i] = new Matrix(2, 10);
         }
+        ThreadPool threadPool = new ThreadPool(5);
+        do {
+            if (matrices.length == 1) {
+                matrices[0].print();
+            } else if (matrices.length % 2 == 0) {
+                number = number / 2;
+                Matrix[] newMatrices = new Matrix[number];
+                for (int i = 0; i < matrices.length; i += 2) {
+                    newMatrices[i / 2] = (Matrix) threadPool.run(new MatrixMultiplicationTask(matrices[i], matrices[i + 1]));
+                }
+                matrices = newMatrices;
+            } else if (matrices.length % 2 != 0) {
+                number = number / 2 + 1;
+                Matrix[] newMatrices = new Matrix[number];
+                for (int i = 0; i < matrices.length - 1; i += 2) {
+                    newMatrices[i / 2] = (Matrix) threadPool.run(new MatrixMultiplicationTask(matrices[i], matrices[i + 1]));
+                }
+                newMatrices[number - 1] = matrices[(number - 1) * 2];
+                matrices = newMatrices;
+            }
+        } while (matrices.length > 1);
     }
 }

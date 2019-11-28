@@ -42,6 +42,7 @@ class Worker<T> extends Thread {
                 results = res;
                 this.wait();
             }
+            System.out.println("End of thread");
         } catch (Exception e) {
             throw new RuntimeException("Thread pool was interrupted: " + e.getMessage());
         }
