@@ -3,40 +3,38 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 class ThreadPool {
     private final BlockingQueue<iTask<?>> tasksList;
+    private final BlockingQueue<?> results;
     private final Worker[] threads;
 
     ThreadPool(int numberOfThreads) {
         tasksList = new LinkedBlockingQueue<>();
+        results = new LinkedBlockingQueue<>();
         threads = new Worker[numberOfThreads];
 
         for (int i = 0; i < numberOfThreads; i++) {
-            threads[i] = new Worker(tasksList);
+            //noinspection unchecked
+            threads[i] = new Worker(tasksList, results);
             threads[i].start();
         }
     }
 
-    Object run(iTask<?> task) {
+    void terminate() {
+        for (Worker w : threads) {
+            w.interrupt();
+        }
+    }
+
+    @SuppressWarnings({"LoopConditionNotUpdatedInsideLoop", "StatementWithEmptyBody"})
+    Object getNextResult() {
+        while (results.isEmpty()) ;
+        return results.poll();
+    }
+
+    void run(iTask<?> task) {
         synchronized (tasksList) {
+            System.out.println("Got new task");
             tasksList.add(task);
             tasksList.notify();
-        }
-        while (true) {
-            for (Worker w : threads) {
-                try {
-                    //noinspection SynchronizationOnLocalVariableOrMethodParameter
-                    synchronized (w) {
-                        if (w.getCurrentTask() != null && w.getCurrentTask().equals(task)) {
-                            w.notify();
-                            if (w.getResults() != null) {
-                                System.out.println("Thread number " + w.getName() + " returns result");
-                                return w.getResults();
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    //nothing
-                }
-            }
         }
     }
 }

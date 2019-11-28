@@ -1,49 +1,37 @@
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 
 class Worker<T> extends Thread {
 
     private final BlockingQueue<iTask<T>> blockingQueue;
-    private T results;
-    private iTask<T> task;
+    private final BlockingQueue<T> resultQueue;
 
-    Worker(BlockingQueue<iTask<T>> blockingQueue) {
+    Worker(BlockingQueue<iTask<T>> blockingQueue, BlockingQueue<T> resultQueue) {
         this.blockingQueue = blockingQueue;
-        this.task = null;
+        this.resultQueue = resultQueue;
     }
-
-    T getResults() {
-        return results;
-    }
-
-    iTask getCurrentTask() { return this.task; }
 
     @Override
     public void run() {
-        iTask<T> task;
-        synchronized (blockingQueue) {
-            while (blockingQueue.isEmpty()) {
-                try {
-                    System.out.println("queue is empty, waiting");
-                    blockingQueue.wait(); // Thread Pool should notify when something is added to queue
-                } catch (InterruptedException e) {
-                    System.err.println("Queue waiting was interrupted: " + e.getMessage());
+        while (true) {
+            synchronized (blockingQueue) {
+                while (blockingQueue.isEmpty()) {
+                    try {
+                        System.out.println("queue is empty, waiting");
+                        blockingQueue.wait(); // Thread Pool should notify when something is added to queue
+                    } catch (InterruptedException e) {
+                        return;
+                    }
                 }
             }
-            System.out.println("queue received task");
-            task = blockingQueue.poll();
-            this.task=task;
-        }
 
-        try {
-            assert task != null;
-            T res = task.call();
-            synchronized (this){
-                results = res;
-                this.wait();
+            try {
+                System.out.println("queue received task, " + this.getName() + " is handling it");
+                resultQueue.add(Objects.requireNonNull(blockingQueue.poll()).call());
+                System.out.println(this.getName() + " pushed result");
+            } catch (Exception e) {
+                return;
             }
-            System.out.println("End of thread");
-        } catch (Exception e) {
-            throw new RuntimeException("Thread pool was interrupted: " + e.getMessage());
         }
     }
 }
