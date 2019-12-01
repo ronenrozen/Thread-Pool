@@ -47,7 +47,7 @@ public class Main {
         return matrices;
     }
 
-    private static Matrix[] multiplyMatrices(Matrix[] oldMatrices, ThreadPool threadPool, boolean isEven) {
+    protected static Matrix[] multiplyMatrices(Matrix[] oldMatrices, ThreadPool threadPool, boolean isEven) {
         int newLength = isEven ? oldMatrices.length / 2 : oldMatrices.length / 2 + 1;
         Matrix[] newMatrices = new Matrix[newLength];
         int limit = isEven ? oldMatrices.length : oldMatrices.length - 1;
