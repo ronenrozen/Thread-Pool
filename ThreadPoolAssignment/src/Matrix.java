@@ -44,13 +44,29 @@ public class Matrix {
         IntStream.range(0, dim).forEach(i -> {
             int[] new_row = new int[dim];
             IntStream.range(0, dim).forEach(j -> {
-                int[] col = this.getCol(j);
-                int[] row = b.getRow(i);
+                int[] col = b.getCol(j);
+                int[] row = this.getRow(i);
                 IntStream.range(0, dim).forEach(k -> new_row[j] += col[k] * row[k]);
             });
             result.setRow(i, new_row);
         });
         return result;
+    }
+    
+    public static boolean isEqual(Matrix a, Matrix b) {
+        if (a.getDim() == b.getDim()) {
+            int dim = a.getDim();
+            for (int i = 0; i < dim; ++i) {
+                int[] rowA = a.getRow(i);
+                int[] rowB = b.getRow(i);
+                for (int j = 0; j < dim; ++j)
+                    if (rowA[j] != rowB[j])
+                        return false;
+            }
+            return true;
+        }
+        else
+            return false;
     }
 
     public void print() {
